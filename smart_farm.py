@@ -1,5 +1,3 @@
-# sensor.py
-
 from gpiozero import MCP3008, OutputDevice
 import board
 import busio
