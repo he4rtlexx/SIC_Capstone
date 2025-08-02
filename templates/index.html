@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Farm Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌱 Smart Farm Dashboard</h1>
+        </header>
+
+        <main>
+            <!-- Sensor Data Cards + Control Panel -->
+            <section class="sensor-grid">
+                <div class="sensor-card temperature">
+                    <div class="sensor-icon">🌡️</div>
+                    <div class="sensor-info">
+                        <h3>Temperature</h3>
+                        <div class="sensor-value" id="temperature">--</div>
+                        <div class="sensor-unit">°C</div>
+                    </div>
+                </div>
+
+                <div class="sensor-card humidity">
+                    <div class="sensor-icon">🌫</div>
+                    <div class="sensor-info">
+                        <h3>Air Humidity</h3>
+                        <div class="sensor-value" id="humidity">--</div>
+                        <div class="sensor-unit">%</div>
+                    </div>
+                </div>
+
+                <div class="sensor-card soil">
+                    <div class="sensor-icon">💧</div>
+                    <div class="sensor-info">
+                        <h3>Soil Moisture</h3>
+                        <div class="sensor-value" id="soil">--</div>
+                        <div class="sensor-unit">%</div>
+                    </div>
+                </div>
+
+                <div class="sensor-card pump">
+                    <div class="sensor-icon">⚡</div>
+                    <div class="sensor-info">
+                        <h3>Pump Status</h3>
+                        <div class="sensor-value" id="pump-status">--</div>
+                        <div class="sensor-unit" id="pump-mode">Manual</div>
+                    </div>
+                </div>
+
+                <!-- Control Panel Card -->
+                <div class="control-card">
+                    <div class="control-header">
+                        <div class="control-icon">🎛️</div>
+                        <h3>Pump Control</h3>
+                    </div>
+                    
+                    <div class="mode-selector">
+                        <label class="radio-container">
+                            <input type="radio" name="mode" value="manual" checked>
+                            <span class="checkmark"></span>
+                            Manual
+                        </label>
+                        <label class="radio-container">
+                            <input type="radio" name="mode" value="auto">
+                            <span class="checkmark"></span>
+                            Auto
+                        </label>
+                    </div>
+
+                    <div class="pump-controls">
+                        <button id="pump-btn" class="pump-button off">
+                            <span class="pump-icon">▶️</span>
+                            <span class="pump-text">Turn ON</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Auto Mode Info -->
+            <section class="info-section">
+                <div class="auto-info">
+                    <h4>🤖 Auto Mode Settings</h4>
+                    <div class="auto-rules">
+                        <div class="rule">
+                            <span class="rule-icon">▶️</span>
+                            <span>Pump ON when soil moisture &lt; 20%</span>
+                        </div>
+                        <div class="rule">
+                            <span class="rule-icon">⏹️</span>
+                            <span>Pump OFF when soil moisture &gt; 60%</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Charts Section -->
+            <section class="charts-section">
+                <div class="chart-container">
+                    <h3>Temperature & Humidity</h3>
+                    <canvas id="tempHumChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3>Soil Moisture</h3>
+                    <canvas id="soilChart"></canvas>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='/dashboard.js') }}"></script>
+</body>
+</html>
