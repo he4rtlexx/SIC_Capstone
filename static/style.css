@@ -6,7 +6,7 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #556bca;
+    background: linear-gradient(150deg, #2b5876, #4e4376);
     min-height: 100vh;
     color: #333;
 }
@@ -22,7 +22,7 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(255, 255, 255, 0.95);
+    background: #FEFAE0 ;
     padding: 20px 30px;
     border-radius: 15px;
     margin-bottom: 30px;
@@ -50,14 +50,6 @@ header h1 {
     animation: pulse 2s infinite;
 }
 
-.status-dot.connected {
-    background: #27ae60;
-}
-
-.status-dot.disconnected {
-    background: #e74c3c;
-}
-
 @keyframes pulse {
     0% { opacity: 1; }
     50% { opacity: 0.5; }
@@ -73,7 +65,7 @@ header h1 {
 }
 
 .sensor-card {
-    background: rgba(255, 255, 255, 0.95);
+    background: #FEFAE0 ;
     padding: 25px;
     border-radius: 15px;
     display: flex;
@@ -123,7 +115,7 @@ header h1 {
 
 /* Control Card - Now styled like sensor cards */
 .control-card {
-    background: rgba(255, 255, 255, 0.95);
+    background: #FEFAE0;
     padding: 25px;
     border-radius: 15px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -242,7 +234,7 @@ header h1 {
 }
 
 .auto-info {
-    background: rgba(255, 255, 255, 0.95);
+    background: #FEFAE0 ;
     padding: 20px 25px;
     border-radius: 15px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -285,7 +277,7 @@ header h1 {
 }
 
 .chart-container {
-    background: rgba(255, 255, 255, 0.95);
+    background: #FEFAE0;
     padding: 25px;
     border-radius: 15px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -348,7 +340,7 @@ header h1 {
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 900px) {
     .sensor-card {
         padding: 20px;
         flex-direction: column;
