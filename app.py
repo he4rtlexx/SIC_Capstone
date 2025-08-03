@@ -1,16 +1,21 @@
-from flask import Flask, render_template, jsonify, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import smart_farm
 import threading
 import time
-import os
-import json
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 
-app.secret_key = 'NSi8Q4EuDEbBFjGoSwTHDjU/dJ8eGGaiNiKW9qY+qJQx73gvL7WZU/3iF37E8Rdl'  
+# Configuration for Flask app and database
+app.secret_key = 'NSi8Q4EuDEbBFjGoSwTHDjU/dJ8eGGaiNiKW9qY+qJQx73gvL7WZU/3iF37E8Rdl' 
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///user.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Initialize Flask-Login
+# Initialize database and login manager
+db = SQLAlchemy(app)
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -20,46 +25,43 @@ pump_mode = "manual"  # "auto" or "manual"
 auto_pump_thread = None
 auto_pump_running = False
 
-class User(UserMixin):
-    def __init__(self, id, username, password):
-        self.id = id
-        self.username = username
-        self.password = password
+# User model
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password_hash = db.Column(db.String(128), nullable=False)
 
-USER_FILE = 'user.json'
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
-# Load user from JSON file
-def load_user():
-    if not os.path.exists(USER_FILE):
-        return {'username': 'admin', 'password': 'admin'}
-    with open(USER_FILE) as f:
-        return json.load(f)
-        
-# Save user to JSON file
-def save_user(user):
-    with open(USER_FILE, 'w') as f:
-        json.dump(user, f)
+# Create the database and a default admin user
+with app.app_context():
+    db.create_all()
+    if not User.query.filter_by(username='admin').first():
+        user = User(username='admin')
+        user.set_password('admin')
+        db.session.add(user)
+        db.session.commit()
 
-# Load user data
 @login_manager.user_loader
-def load_user_from_id(user_id):
-    user = load_user()
-    if user_id == user['username']:
-        return User(id=user['username'], username=user['username'], password=user['password'])
-    return None
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
 
 # Login route
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        user = load_user()
         username = request.form['username']
         password = request.form['password']
-        if username == user['username'] and password == user['password']:
-            login_user(User(id=username, username=username, password=password))
+        user = User.query.filter_by(username=username).first()
+        if user and user.check_password(password):
+            login_user(user)
             return redirect(url_for('index'))
         else:
-            flash('Invalid credentials!')
+            flash('Invalid username or password!')
     return render_template('login.html')
 
 # Logout route
@@ -76,11 +78,9 @@ def change_password():
     if request.method == 'POST':
         current_pass = request.form['current_password']
         new_pass = request.form['new_password']
-        user = load_user()
-        if current_pass == user['password']:
-            user['password'] = new_pass
-            save_user(user)
-            flash('Password changed successfully!')
+        if current_user.check_password(current_pass):
+            current_user.set_password(new_pass)
+            db.session.commit()
             return redirect(url_for('index'))
         else:
             flash('Current password incorrect!')
