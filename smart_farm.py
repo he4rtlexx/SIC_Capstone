@@ -6,7 +6,7 @@ import time
 
 soil_sensor = MCP3008(channel=0)
 
-pump = OutputDevice(27, active_high=False, initial_value=False)
+pump = OutputDevice(27, active_high=True, initial_value=False)
 
 i2c = busio.I2C(board.SCL, board.SDA)
 sht31 = adafruit_sht31d.SHT31D(i2c)
