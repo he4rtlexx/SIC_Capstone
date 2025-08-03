@@ -11,7 +11,11 @@
     <div class="container">
         <header>
             <h1>🌱 Smart Farm Dashboard</h1>
-        </header>
+            <div>
+                <a href="{{ url_for('change_password') }}">Change Password</a> |
+                <a href="{{ url_for('logout') }}">Logout</a>
+            </div>
+        </header>      
 
         <main>
             <!-- Sensor Data Cards + Control Panel -->

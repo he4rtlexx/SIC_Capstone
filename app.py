@@ -1,28 +1,91 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, redirect, url_for, session, flash
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import smart_farm
 import threading
 import time
-from flask_httpauth import HTTPBasicAuth
-from werkzeug.security import check_password_hash, generate_password_hash
-
-auth = HTTPBasicAuth()
-
-# Dummy user for basic authentication
-users = {
-    "admin": generate_password_hash("12345")
-}
-
-@auth.verify_password
-def verify_password(username, password):
-    if username in users and check_password_hash(users.get(username), password):
-        return username
+import os
+import json
 
 app = Flask(__name__)
+
+app.secret_key = 'NSi8Q4EuDEbBFjGoSwTHDjU/dJ8eGGaiNiKW9qY+qJQx73gvL7WZU/3iF37E8Rdl'  
+
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
 
 # Global variables for pump control
 pump_mode = "manual"  # "auto" or "manual"
 auto_pump_thread = None
 auto_pump_running = False
+
+class User(UserMixin):
+    def __init__(self, id, username, password):
+        self.id = id
+        self.username = username
+        self.password = password
+
+USER_FILE = 'user.json'
+
+# Load user from JSON file
+def load_user():
+    if not os.path.exists(USER_FILE):
+        return {'username': 'admin', 'password': 'admin'}
+    with open(USER_FILE) as f:
+        return json.load(f)
+        
+# Save user to JSON file
+def save_user(user):
+    with open(USER_FILE, 'w') as f:
+        json.dump(user, f)
+
+# Load user data
+@login_manager.user_loader
+def load_user_from_id(user_id):
+    user = load_user()
+    if user_id == user['username']:
+        return User(id=user['username'], username=user['username'], password=user['password'])
+    return None
+
+# Login route
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        user = load_user()
+        username = request.form['username']
+        password = request.form['password']
+        if username == user['username'] and password == user['password']:
+            login_user(User(id=username, username=username, password=password))
+            return redirect(url_for('index'))
+        else:
+            flash('Invalid credentials!')
+    return render_template('login.html')
+
+# Logout route
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
+
+# Change password route
+@app.route('/change_password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    if request.method == 'POST':
+        current_pass = request.form['current_password']
+        new_pass = request.form['new_password']
+        user = load_user()
+        if current_pass == user['password']:
+            user['password'] = new_pass
+            save_user(user)
+            flash('Password changed successfully!')
+            return redirect(url_for('index'))
+        else:
+            flash('Current password incorrect!')
+    return render_template('change_password.html')
+
 
 # Function to handle automatic pump control in a background thread
 def auto_pump_control():
@@ -47,12 +110,13 @@ def auto_pump_control():
 
 # Flask routes for web interface and API
 @app.route('/')
-@auth.login_required
+@login_required
 def index():
     return render_template('index.html')
 
 # API endpoint to get sensor data and pump state
 @app.route('/api/data')
+@login_required
 def api_data():
     temp, hum = smart_farm.read_sht31()
     soil = smart_farm.read_soil_analog()
@@ -67,6 +131,7 @@ def api_data():
 
 # API endpoint to control the pump
 @app.route('/api/pump', methods=['POST'])
+@login_required
 def api_pump():
     global pump_mode, auto_pump_thread, auto_pump_running
     
