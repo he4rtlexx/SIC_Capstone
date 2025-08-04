@@ -25,7 +25,7 @@ def read_sht31():
 # Returns percentage of moisture
 def read_soil_analog():
     value = soil_sensor.value  
-    percent = round(value * 100, 2)
+    percent = round((1-value) * 100, 2)
     return percent
 
 # Function to set the pump state
